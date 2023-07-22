@@ -56,7 +56,7 @@ class chatbotState extends State<chatbot> {
       });
       _scrollDown();
       http
-          .post(Uri.parse("http://4.156.87.67/api/prompts"),
+          .post(Uri.parse("http://x.x.x.x/api/prompts"),
               headers: {'Content-type': 'application/json'},
               body: json.encode({"user_id": idUser, "prompt": prompt}))
           .then((response) {
