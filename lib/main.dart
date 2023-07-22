@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-// import 'package:url_launcher/url_launcher.dart';
-import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
+// import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'chatMsg.dart';
+import 'package:linkify/linkify.dart';
+// import 'package:flutter_html/flutter_html.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,42 +18,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Tak Sendiri',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        fontFamily: 'MavenPro',
+        colorScheme: ColorScheme.fromSwatch(
+            backgroundColor: Color.fromARGB(255, 126, 120, 202),
+            primaryColorDark: Color.fromARGB(255, 47, 44, 80),
+            cardColor: Color.fromARGB(255, 47, 44, 80),
+            accentColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Tak Sendiri'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -62,95 +45,284 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   // int _counter = 0;
   int idUser = 1;
+  String name = "Budi";
   String prompt = "Med Stud Games";
+  String newChat = "";
 
-  // void _incrementCounter() {
-  //   setState(() {
-  //     // This call to setState tells the Flutter framework that something has
-  //     // changed in this State, which causes it to rerun the build method below
-  //     // so that the display can reflect the updated values. If we changed
-  //     // _counter without calling setState(), then the build method would not be
-  //     // called again, and so nothing would appear to happen.
-  //     _counter++;
-  //   });
-  // }
+  final textPrompt = TextEditingController();
+
+  List<ChatMessage> messages = [
+    ChatMessage(
+        messageContent: "Halo! Apa yang bisa saya bantu?",
+        messageType: "receiver"),
+  ];
+
+  final ScrollController _controller = ScrollController();
+
+  void _scrollDown() {
+    _controller.animateTo(
+      _controller.position.maxScrollExtent,
+      duration: Duration(seconds: 2),
+      curve: Curves.fastOutSlowIn,
+    );
+  }
+
+  void promptTrigger() {
+    if (textPrompt.text == "") {
+    } else {
+      prompt = textPrompt.text;
+      setState(() {
+        newChat = prompt;
+        messages
+            .add(ChatMessage(messageContent: newChat, messageType: "sender"));
+
+        textPrompt.clear();
+      });
+      _scrollDown();
+      http
+          .post(Uri.parse("http://4.156.87.67/api/prompts"),
+              headers: {'Content-type': 'application/json'},
+              body: json.encode({"user_id": idUser, "prompt": prompt}))
+          .then((response) {
+        print(response.body);
+        // print("pokemon");
+        setState(() {
+          newChat = json.decode(response!.body)['response'];
+          messages.add(
+              ChatMessage(messageContent: newChat, messageType: "receiver"));
+
+          _scrollDown();
+        });
+      });
+    }
+  }
+
+  String extractLink(String input) {
+    var elements = linkify(input,
+        options: LinkifyOptions(
+          humanize: false,
+        ));
+    for (var e in elements) {
+      if (e is LinkableElement) {
+        return e.url;
+      }
+    }
+    return "no link";
+  }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-
-    // print(Uri.encodeFull("http://10.10.9.221/api/user/" +
-    //     idUser.toStringAsFixed(0) +
-    //     "/prompt/" +
-    //     prompt));
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Scrollbar(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    FutureBuilder(
-                        future: http.post(
-                            Uri.parse("http://10.10.9.221/api/prompts"),
-                            headers: {'Content-type': 'application/json'},
-                            body: json
-                                .encode({"user_id": idUser, "prompt": prompt})),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            print(snapshot.data);
-                            return Column(
-                              children: <Widget>[
-                                RichText(
-                                  text: TextSpan(
-                                    text: "Respone:/n" +
-                                        json.decode(
-                                            snapshot.data!.body)['response'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          } else if (snapshot.hasError) {
-                            return Text(
-                              "[!].",
-                              textAlign: TextAlign.left,
-                              style: new TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.normal),
-                            );
-                          } else {
-                            return Center(child: CircularProgressIndicator());
-                          }
-                        }),
-                  ],
-                ),
+      body: Stack(
+        children: <Widget>[
+          Scrollbar(
+            child: ListView.builder(
+              controller: _controller,
+              itemCount: messages.length,
+              shrinkWrap: true,
+              padding: EdgeInsets.only(top: 10, bottom: 100),
+              // physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                return Container(
+                  padding:
+                      EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
+                  child: Align(
+                    alignment: (messages[index].messageType == "receiver"
+                        ? Alignment.topLeft
+                        : Alignment.topRight),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: (messages[index].messageType == "receiver"
+                            ? BorderRadius.only(
+                                topRight: Radius.circular(15.0),
+                                bottomLeft: Radius.circular(25.0),
+                                bottomRight: Radius.circular(15.0),
+                              )
+                            : BorderRadius.only(
+                                topLeft: Radius.circular(15.0),
+                                bottomLeft: Radius.circular(15.0),
+                                bottomRight: Radius.circular(25.0),
+                              )),
+                        color: (messages[index].messageType == "receiver"
+                            ? Colors.grey.shade200
+                            : Color.fromARGB(255, 47, 44, 80)),
+                      ),
+                      padding: EdgeInsets.all(16),
+                      child: extractLink(messages[index].messageContent) ==
+                              "no link"
+                          ? Text(
+                              messages[index].messageContent,
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  color:
+                                      messages[index].messageType == "receiver"
+                                          ? Colors.black
+                                          : Colors.white),
+                            )
+                          : InkWell(
+                              child: Text(
+                                messages[index].messageContent,
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                              onTap: () {
+                                launchUrl(Uri.parse(extractLink(
+                                    messages[index].messageContent)));
+                              },
+                            ),
+//                           Html(
+//                               data: messages[index].messageContent,
+
+//                               onLinkTap: (url, context, attributes, element) {
+//                                 // open url in a webview
+//                                 launchUrl(url! as Uri);
+//                               },
+// //
+//                               style: {
+//                                 "html": Style.fromTextStyle(
+//                                   TextStyle(fontSize: 14.0),
+//                                 ),
+//                               },
+//                             ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.only(left: 10, bottom: 10, top: 10),
+              height: 60,
+              width: double.infinity,
+              color: Colors.white,
+              child: Row(
+                children: <Widget>[
+                  // GestureDetector(
+                  //   onTap: () {},
+                  //   child: Container(
+                  //     height: 30,
+                  //     width: 30,
+                  //     decoration: BoxDecoration(
+                  //       color: Color.fromARGB(255, 47, 44, 80),
+                  //       borderRadius: BorderRadius.circular(30),
+                  //     ),
+                  //     child: Icon(
+                  //       Icons.clear,
+                  //       color: Colors.white,
+                  //       size: 20,
+                  //     ),
+                  //   ),
+                  // ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: textPrompt,
+                      decoration: InputDecoration(
+                          hintText: "Ketik di sini...",
+                          hintStyle: TextStyle(color: Colors.black54),
+                          border: InputBorder.none),
+                      onEditingComplete: () {
+                        promptTrigger();
+                        FocusScope.of(context).unfocus();
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 15,
+                  ),
+                  FloatingActionButton(
+                    onPressed: () {
+                      promptTrigger();
+                    },
+                    child: Icon(
+                      Icons.send,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    backgroundColor: Color.fromARGB(255, 47, 44, 80),
+                    elevation: 0,
+                    shape: CircleBorder(
+                        // borderRadius: BorderRadius.all(Radius.circular(15.0))
+                        ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+
+    // return Scaffold(
+    //   appBar: AppBar(
+    //     backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+    //     title: Text(widget.title),
+    //   ),
+    //   body: Center(
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: <Widget>[
+    //         Scrollbar(
+    //           child: SingleChildScrollView(
+    //             child: Column(
+    //               mainAxisSize: MainAxisSize.min,
+    //               children: <Widget>[
+    //                 FutureBuilder(
+    //                     future: http.post(
+    //                         Uri.parse("http://4.156.87.67/api/prompts"),
+    //                         headers: {'Content-type': 'application/json'},
+    //                         body: json
+    //                             .encode({"user_id": idUser, "prompt": prompt})),
+    //                     builder: (context, snapshot) {
+    //                       if (snapshot.hasData) {
+    //                         print(snapshot.data);
+    //                         return Column(
+    //                           children: <Widget>[
+    //                             RichText(
+    //                               text: TextSpan(
+    //                                 text: "Respone:/n" +
+    //                                     json.decode(
+    //                                         snapshot.data!.body)['response'],
+    //                                 style: TextStyle(
+    //                                   fontSize: 16,
+    //                                   color: Colors.black,
+    //                                   fontWeight: FontWeight.normal,
+    //                                 ),
+    //                               ),
+    //                             ),
+    //                           ],
+    //                         );
+    //                       } else if (snapshot.hasError) {
+    //                         return Text(
+    //                           "[!].",
+    //                           textAlign: TextAlign.left,
+    //                           style: new TextStyle(
+    //                               fontSize: 16.0,
+    //                               fontWeight: FontWeight.normal),
+    //                         );
+    //                       } else {
+    //                         return Center(child: CircularProgressIndicator());
+    //                       }
+    //                     }),
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    //   // floatingActionButton: FloatingActionButton(
+    //   //   onPressed: _incrementCounter,
+    //   //   tooltip: 'Increment',
+    //   //   child: const Icon(Icons.add),
+    //   // ), // This trailing comma makes auto-formatting nicer for build methods.
+    // );
   }
 }
