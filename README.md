@@ -5,7 +5,13 @@
 # Tak Sendiri 
 
 Advanced AI Chatbot for people struggling through depression trained and modeled by our team.
-
+<p>
+  <img alt="Flutter" src="https://img.shields.io/badge/Flutter-26a8ff?logo=flutter&logoColor=white&style=flat" />
+  <img alt="Dart" src="https://img.shields.io/badge/Dart-327ba8?logo=dart&logoColor=white&style=flat" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-edae00?logo=python&logoColor=white&style=flat" />
+  <img alt="Microsoft Azure" src="https://img.shields.io/badge/Microsoft Azure-196de3?logo=microsoftazure&logoColor=white&style=flat" />
+  <img alt="Chat GPT" src="https://img.shields.io/badge/Chat GPT-00cf9b?logo=chatgpt&logoColor=white&style=flat" />
+</p>
 ## About
 1 in 20 Indonesian youths experience mental health problems, especially depression. Unfortunately, in Indonesia there is no specific hotline to deal with sufferers. To solve this problem, our organization created a solution called "Tak Sendiri".
 
@@ -16,7 +22,7 @@ Mental health disorders such as depression can be fatal, with many Indonesians c
 ## Features
 <div align="center">
 <img src="https://github.com/azhar-rafiq/Tak-Sendiri/blob/master/images/koya.png" height="200px" />
-</div><div>
+</div>
 Our bot is called Koya. Koya will listen to you for every thought and story you are willing to share. By doing so, you release a co
 
 ## Usage
@@ -34,3 +40,8 @@ Server-side:
 - Container : Docker
 - Container Service : Azure Container Interface
 - OpenAI
+
+## Screenshoot
+
+<div align="center">
+<img src="https://github.com/azhar-rafiq/Tak-Sendiri/blob/master/images/ss1.png"  /></div>
